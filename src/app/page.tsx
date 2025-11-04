@@ -1,32 +1,59 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-export default function HomePage() {
+// Import our new components using relative paths
+import CategoryLinks from "./components/shared/CategoryLinks";
+import FeaturedProducts from "./components/home/FeaturedProducts";
+import BestGear from "./components/shared/BestGear";
+
+export default function Page() {
   return (
     <>
       {/* Hero Section */}
-      {/* This section is black. The header is absolute and transparent on top of it.
-        We use a negative top margin to pull this section *up* behind the header.
-        The `pt-32` (padding-top) pushes the *content* down to be visible.
-        This achieves the Figma design of the header floating over the hero.
-      */}
-      <div 
-        className="bg-black text-white -mt-[120px]" // 97px is approx height of header
+      <div
+        className="relative bg-[#191919]  overflow-hidden" // Pulls section up behind transparent header
       >
-        {/* Hero content wrapper. 
-          The Figma design has the hero bg image span the full width,
-          but the text content is centered in the container.
-          
-          We'll use a placeholder dark background.
-          In a real build, you'd add a background image here.
-          e.g., style={{ backgroundImage: "url('/images/image-hero.jpg')" }}
-        */}
-        <div className="bg-gray-900 bg-opacity-50 bg-blend-multiply">
-          <div className="container mx-auto px-6 pt-32 pb-24 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40 flex flex-col items-center lg:items-start text-center lg:text-left">
-            <p className="text-[#FFFFFF] uppercase tracking-[0.5em] text-sm mb-4 animate__animated animate__fadeInDown">
+        {/* Responsive Background Images */}
+        {/* Mobile */}
+        <Image
+          src="/assets/home/mobile/image-header.jpg"
+          alt=""
+          priority
+          fill
+          className="block md:hidden z-10 object-cover object-center" // FIXED
+        />
+        {/* Tablet */}
+        <Image
+          src="/assets/home/tablet/image-header.jpg"
+          alt=""
+          priority
+          fill
+          className="hidden md:block lg:hidden z-10 object-cover object-center" // FIXED
+        />
+        {/* Desktop */}
+        <Image
+          src="/assets/home/desktop/image-hero.jpg"
+          alt=""
+          priority
+          fill
+          className="hidden lg:block z-10 object-cover object-center" // FIXED
+        />
+
+        {/* Dark overlay for Mobile/Tablet readability */}
+        <div className="absolute inset-0 bg-black bg-opacity-40 lg:hidden"></div>
+
+        {/* Hero Content Wrapper */}
+        <div className="container mx-auto px-6">
+          {/* This div holds the text content.
+            - On mobile/tablet, it's centered.
+            - On desktop, it's NOT centered and takes up the left side.
+          */}
+          <div className="relative z-10 flex flex-col items-center lg:items-start text-center lg:text-left pt-32 pb-24 md:pt-40 md:pb-32 lg:pt-48 lg:pb-40">
+            <p className="text-white opacity-50 uppercase tracking-[0.5em] text-sm mb-4 animate__animated animate__fadeInDown">
               New Product
             </p>
-            <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-wider max-w-md animate__animated animate__fadeInDown animate__delay-1s">
+            <h1 className="text-4xl md:text-6xl font-bold uppercase tracking-wider max-w-md text-white animate__animated animate__fadeInDown animate__delay-1s">
               XX99 Mark II
               <br />
               Headphones
@@ -45,14 +72,12 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Rest of the homepage content (product showcases, etc.) 
-        will go here in the next steps.
-      */}
-      <div className="container mx-auto p-6 py-20">
-        <h2 className="text-2xl font-bold text-center">
-          Product Showcase Coming Soon...
-        </h2>
-      </div>
+      {/* Main Page Content */}
+      <main className="pt-24 md:pt-32 lg:pt-48 pb-20 md:pb-24 lg:pb-40 flex flex-col gap-20 md:gap-24 lg:gap-40">
+        <CategoryLinks />
+        <FeaturedProducts />
+        <BestGear />
+      </main>
     </>
   );
 }
