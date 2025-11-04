@@ -43,8 +43,11 @@ async function getCategoryData(slug: string): Promise<Product[]> {
 }
 
 // --- The Page Component ---
-export default async function CategoryPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+// 1. FIX: Update the type to show params is a Promise
+export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+  
+  // 2. FIX: Add 'await' here to unwrap the promise
+  const { slug } = await params;
   
   // Fetch the data
   const products = await getCategoryData(slug);
@@ -76,3 +79,4 @@ export default async function CategoryPage({ params }: { params: { slug: string 
     </div>
   );
 }
+

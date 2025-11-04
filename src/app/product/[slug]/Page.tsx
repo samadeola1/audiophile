@@ -69,8 +69,11 @@ async function getProductData(slug: string): Promise<Product | undefined> {
 }
 
 // --- The Page Component ---
-export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+// 1. FIX: Update the type to show params is a Promise
+export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
+  
+  // 2. FIX: Add 'await' here to unwrap the promise
+  const { slug } = await params;
   const product = await getProductData(slug);
 
   // If no product is found, show the 404 page
@@ -116,3 +119,4 @@ export default async function ProductPage({ params }: { params: { slug: string }
     </div>
   );
 }
+

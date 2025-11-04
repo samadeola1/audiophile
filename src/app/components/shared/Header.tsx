@@ -1,9 +1,11 @@
 "use client"; 
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, ShoppingCart } from 'lucide-react';
-import { usePathname } from 'next/navigation'; // Import the usePathname hook
+import { usePathname } from 'next/navigation';
+import { useCartStore } from '../../store/cartStore'; // Import Zustand store
+import CartModal from '../cart/CartModal'; // Import the new Cart Modal
 
 // Reusable component for nav links
 const NavLinks = ({ onClick, className = '' }: { onClick?: () => void, className?: string }) => (
@@ -17,22 +19,36 @@ const NavLinks = ({ onClick, className = '' }: { onClick?: () => void, className
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const pathname = usePathname(); // Get the current URL path
-  const isHomepage = pathname === '/'; // Check if we are on the homepage
+  const pathname = usePathname();
+  const isHomepage = pathname === '/';
 
-  // Determine classes based on the page
+  // --- FIX FOR ALL ERRORS ---
+  // 1. Select state individually to prevent infinite loops
+  const items = useCartStore((state) => state.items);
+  const isCartModalOpen = useCartStore((state) => state.isCartModalOpen);
+  const toggleCartModal = useCartStore((state) => state.actions.toggleCartModal);
+
+  // 2. Use 'isMounted' to track if we are on the client
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // 3. Add a fallback `|| []` for items, which can be undefined on initial load
+  const totalItems = (items || []).reduce((total, item) => total + item.quantity, 0);
+  // --- END OF FIX ---
+
   const headerClasses = isHomepage
     ? 'absolute bg-transparent text-white'
     : 'relative bg-black text-white';
   
-  const navLinkClasses = isHomepage ? 'text-white' : 'text-white'; // Desktop links are always white on dark bg
+  const navLinkClasses = 'text-white';
 
   return (
     <>
       <header className={`top-0 left-0 w-full z-30 ${headerClasses}`}>
         <div className="container mx-auto px-6 py-8 flex items-center justify-between">
           
-          {/* Mobile Menu Toggle (hidden on lg) */}
           <button
             onClick={() => setIsMobileMenuOpen(true)}
             className="lg:hidden text-white"
@@ -41,25 +57,31 @@ const Header = () => {
             <Menu size={24} />
           </button>
 
-          {/* Logo */}
-          <Link href="/" className="text-2xl font-bold tracking-tighter text-white lg:mr-12">
+          <Link href="/" className="text-2xl font-bold px-20 lg:px-0 tracking-tighter text-white lg:mr-12">
             audiophile
           </Link>
 
-          {/* Desktop Nav (hidden on mobile/tablet) */}
-          <nav className="hidden lg:flex pl-[100px] gap-8 font-bold text-sm">
+          <nav className="hidden lg:flex px-60 gap-8 font-bold text-sm">
             <NavLinks className={navLinkClasses} />
           </nav>
 
           {/* Cart Icon */}
           <button 
-            className="ml-auto text-white" 
-            aria-label="View cart"
+            onClick={toggleCartModal}
+            className="ml-auto text-white relative" 
+            // 4. Use 'isMounted' to conditionally render the total for hydration safety
+            aria-label={`View cart (${isMounted ? totalItems : 0} items)`}
           >
             <ShoppingCart size={24} />
+            {/* 5. Use 'isMounted' to conditionally render the badge */}
+            {isMounted && totalItems > 0 && (
+              <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
           </button>
         </div>
-        {/* Bottom border (only show on homepage) */}
+        
         {isHomepage && (
           <div className="container mx-auto px-6">
             <div className="border-b border-gray-700 opacity-50"></div>
@@ -75,7 +97,7 @@ const Header = () => {
         >
           <div
             className="fixed top-0 left-0 w-4/5 max-w-sm h-full bg-white z-50 p-8 shadow-lg animate__animated animate__slideInLeft animate__faster"
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside menu
+            onClick={(e) => e.stopPropagation()} 
           >
             <button
               onClick={() => setIsMobileMenuOpen(false)}
@@ -84,15 +106,18 @@ const Header = () => {
             >
               <X size={24} />
             </button>
-            {/* Mobile Nav Links - now text-black */}
             <nav className="flex flex-col gap-6 mt-16">
               <NavLinks onClick={() => setIsMobileMenuOpen(false)} className="text-black" />
             </nav>
           </div>
         </div>
       )}
+
+      {/* 6. Use 'isMounted' to only render the modal on the client */}
+      {isMounted && <CartModal />}
     </>
   );
 };
 
 export default Header;
+

@@ -3,37 +3,34 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Plus, Minus } from 'lucide-react';
-
-// Define the type for the product prop
-type Product = {
-  slug: string;
-  name: string;
-  image: {
-    mobile: string;
-    tablet: string;
-    desktop: string;
-  };
-  new: boolean;
-  price: number;
-  description: string;
-};
+import { Product } from '../../types'; // Import our new Product type
+import { useCartStore } from '../../store/cartStore'; // Import the cart store
 
 // Helper to fix image paths
 const getImagePath = (path: string) => path.replace('./assets', '/assets');
 
 const ProductDetails = ({ product }: { product: Product }) => {
   const [quantity, setQuantity] = useState(1);
+  // Get actions from the store
+  const addItemToCart = useCartStore((state) => state.actions.addItem);
+  const toggleCartModal = useCartStore((state) => state.actions.toggleCartModal);
 
   const increment = () => setQuantity(q => q + 1);
   const decrement = () => setQuantity(q => (q > 1 ? q - 1 : 1));
 
-  // Format price
+  // Format price to a nice string like $2,999
   const formattedPrice = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(product.price);
+
+  // This function now adds to the global state and opens the modal
+  const handleAddToCart = () => {
+    addItemToCart(product, quantity);
+    toggleCartModal(); // Open the cart modal on add
+  };
 
   return (
     <section className="container mx-auto px-6 my-16 md:my-24 lg:my-40">
@@ -92,6 +89,7 @@ const ProductDetails = ({ product }: { product: Product }) => {
             </div>
             {/* Add to Cart Button */}
             <button
+              onClick={handleAddToCart}
               className="bg-orange-500 text-white uppercase font-bold text-sm tracking-wider px-8 py-4 hover:bg-orange-600 transition-colors"
             >
               Add to Cart
@@ -104,4 +102,3 @@ const ProductDetails = ({ product }: { product: Product }) => {
 };
 
 export default ProductDetails;
-
